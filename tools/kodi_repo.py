@@ -121,6 +121,13 @@ def repo_addon_xml(base, version=REPO_VERSION):
 
 def write_repo_addon_zip(path, base):
     path.parent.mkdir(parents=True, exist_ok=True)
+    if path.exists():  # nepřepisovat, pokud se obsah nezměnil (bajty ZIPu závisí na verzi zlib)
+        try:
+            with zipfile.ZipFile(path) as z:
+                if z.read(f"{REPO_ID}/addon.xml").decode("utf-8") == repo_addon_xml(base):
+                    return
+        except (KeyError, zipfile.BadZipFile):
+            pass
     with zipfile.ZipFile(path, "w", zipfile.ZIP_DEFLATED) as z:
         zwrite(z, f"{REPO_ID}/addon.xml", repo_addon_xml(base))
 
