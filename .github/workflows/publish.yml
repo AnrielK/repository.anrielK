@@ -1,0 +1,58 @@
+name: Publish Kodi repo
+
+# Sestaví ZIPy z AnrielK/plugin.video.stream-cinema-2 (větev main) a zapíše je sem.
+# Běží každých 30 minut, ručně (Run workflow; volba "force" přepíše i stejnou verzi)
+# a při změně tools/ nebo extras/. Nová verze se publikuje po zvýšení version v addon.xml.
+# Pokud by bylo zdrojové repo soukromé, přidej secret SRC_TOKEN (Contents: Read) a
+# v kroku checkout zdroje doplň: token: ${{ secrets.SRC_TOKEN }}
+on:
+  schedule:
+    - cron: "7,37 * * * *"
+  workflow_dispatch:
+    inputs:
+      force:
+        description: "Přepsat ZIP i při stejné verzi"
+        type: boolean
+        default: false
+  push:
+    branches: [main]
+    paths: ["tools/**", "extras/**"]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: publish
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: repo
+
+      - uses: actions/checkout@v4
+        with:
+          repository: AnrielK/plugin.video.stream-cinema-2
+          ref: main
+          path: src
+
+      - name: Sestav repozitář
+        env:
+          FORCE: ${{ inputs.force }}
+        run: |
+          ARGS=""
+          [ "$FORCE" = "true" ] && ARGS="--force"
+          python3 repo/tools/kodi_repo.py build --src src --out repo $ARGS
+
+      - name: Publikuj
+        working-directory: repo
+        run: |
+          git add -A
+          if git diff --cached --quiet; then echo "Beze změn"; exit 0; fi
+          VERSION=$(grep -m1 -o '<addon [^>]*version="[^"]*"' ../src/addon.xml | sed 's/.*version="//;s/"//')
+          git -c user.name="github-actions" -c user.email="actions@users.noreply.github.com" \
+            commit -q -m "Publish ${VERSION}"
+          git push origin HEAD
