@@ -4,6 +4,9 @@ Kodi repozitář pro doplněk Stream Cinema Community (fork). Obsah (`addons.xml
 generuje automaticky – needitovat ručně.
 
 **Instalace:** stáhni `repository.anrielK-<verze>.zip` a v Kodi zvol Doplňky → Instalovat ze souboru ZIP.
+**Bez stahování ZIPu:** Kodi → Nastavení → Správce souborů → Přidat zdroj → `https://anrielk.github.io/repository.anrielK/` (název např. `AnrielK`),
+pak Doplňky → Instalovat ze souboru ZIP → AnrielK → `repository.anrielK-<verze>.zip`.
+
 Adresa repozitáře: https://anrielk.github.io/repository.anrielK/
 
 ## Jak to funguje

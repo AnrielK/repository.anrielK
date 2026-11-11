@@ -142,6 +142,14 @@ def add_repo_addon(out, base):
     write_repo_addon_zip(out / name, base)
 
 
+def write_listing(out):
+    """index.html pro Kodi „Přidat zdroj“ (Kodi čte odkazy <a href> jako výpis adresáře)."""
+    links = "\n".join(f'<a href="{p.name}">{p.name}</a><br>' for p in sorted(out.glob("repository.*.zip")))
+    (out / "index.html").write_text(
+        '<!DOCTYPE html>\n<html><head><meta charset="utf-8"><title>AnrielK repozitář</title></head>\n'
+        f'<body>\n{links}\n</body></html>\n', encoding="utf-8")
+
+
 def generate_index(out):
     parts = []
     for d in sorted((out / "zips").iterdir()):
@@ -166,6 +174,7 @@ def cmd_build(a):
     z = build_zip(src, out, a.force)
     add_extras(out)
     add_repo_addon(out, a.base)
+    write_listing(out)
     generate_index(out)
     (out / ".nojekyll").write_text("", encoding="utf-8")
     print(f"OK: addons.xml, addons.xml.md5 ({z.name})")
